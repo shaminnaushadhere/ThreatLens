@@ -1,0 +1,4 @@
+May 31 11:22:10 ubuntu sshd[3012]: Failed password for root from 45.67.89.10 port 53322 ssh2
+May 31 11:22:14 ubuntu sshd[3012]: Failed password for root from 45.67.89.10 port 53322 ssh2
+May 31 11:22:19 ubuntu sshd[3012]: Failed password for root from 45.67.89.10 port 53322 ssh2
+May 31 11:23:01 ubuntu sshd[3012]: Accepted password for root from 45.67.89.10 port 53322 ssh2

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ThreatLens</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="liquid-bg">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<div class="container">
+
+    <div class="hero">
+        <h1 class="main-title">
+            Threat<span class="lens-part">Lens</span>
+        </h1>
+
+        <p class="tagline">AI-Powered Threat Detection & SOC Analysis Platform</p>
+
+        <p class="subtitle">
+            Upload security logs or reports. Detect threats. Investigate faster.
+        </p>
+
+        <a href="#demo-section">
+            <button type="button" class="hero-button">Try Live Demo</button>
+        </a>
+    </div>
+
+    <div class="panel">
+        <h2>What does ThreatLens do?</h2>
+        <p>
+            ThreatLens helps analyze security logs and PDF reports to identify suspicious activity.
+            It detects brute-force attacks, compromised login behavior, suspicious IP addresses,
+            web scanning activity, and maps findings to MITRE ATT&CK techniques.
+        </p>
+        <p>
+            It also enriches suspicious IPs with AbuseIPDB threat intelligence and generates
+            downloadable SOC investigation reports.
+        </p>
+    </div>
+
+    <div class="how-it-works">
+        <div class="work-card">
+            <h3>1. Upload</h3>
+            <p>Upload .log, .txt, or text-based PDF reports.</p>
+        </div>
+
+        <div class="work-card">
+            <h3>2. Analyze</h3>
+            <p>ThreatLens checks for suspicious security patterns.</p>
+        </div>
+
+        <div class="work-card">
+            <h3>3. Extract IOCs</h3>
+            <p>IP addresses and user accounts are extracted automatically.</p>
+        </div>
+
+        <div class="work-card">
+            <h3>4. Map MITRE</h3>
+            <p>Findings are mapped to MITRE ATT&CK techniques.</p>
+        </div>
+
+        <div class="work-card">
+            <h3>5. Check Reputation</h3>
+            <p>Public IPs are enriched using AbuseIPDB.</p>
+        </div>
+
+        <div class="work-card">
+            <h3>6. Report</h3>
+            <p>Generate PDF reports and CSV IOC exports.</p>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="panel" id="demo-section">
+
+        <div class="demo-guide">
+            <h2>Try a Demo</h2>
+            <p>No setup needed. Click a demo below and ThreatLens will analyze sample SOC logs automatically.</p>
+        </div>
+
+        <div class="demo-buttons">
+            <button type="submit" name="demo_type" value="ssh">SSH Brute Force Demo</button>
+            <button type="submit" name="demo_type" value="compromise">Compromised Login Demo</button>
+            <button type="submit" name="demo_type" value="web">Web Scan Demo</button>
+            <button type="submit" name="demo_type" value="normal">Normal Activity Demo</button>
+        </div>
+
+        <p class="privacy-note">
+            Privacy Note: Uploaded files are analyzed during the current session and are not permanently stored by this app.
+        </p>
+
+        <label>Upload a .log, .txt, or .pdf file:</label>
+        <input type="file" name="logfile">
+
+        <p class="or">or paste logs below</p>
+
+        <textarea name="logs" placeholder="Paste Linux SSH logs, Apache/Nginx logs, or security report text here...">{{ log_text }}</textarea>
+
+        <button type="submit">Analyze Logs</button>
+    </form>
+
+    {% if error %}
+    <div class="error-box">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if summary %}
+
+    <div class="panel investigation-summary">
+        <h2>Investigation Summary</h2>
+        <div class="summary-grid">
+            <div>
+                <strong>{{ summary.risk_level }}</strong>
+                <span>Overall Risk</span>
+            </div>
+            <div>
+                <strong>{{ summary.ips|length }}</strong>
+                <span>IP Addresses Found</span>
+            </div>
+            <div>
+                <strong>{{ summary.mitre_techniques|length }}</strong>
+                <span>MITRE Techniques</span>
+            </div>
+            <div>
+                <strong>{{ results|length }}</strong>
+                <span>Total Findings</span>
+            </div>
+        </div>
+    </div>
+
+    {% if file_info %}
+    <div class="panel">
+        <h2>File Information</h2>
+        <p><strong>File Name:</strong> {{ file_info.name }}</p>
+        <p><strong>File Type:</strong> {{ file_info.type }}</p>
+        <p><strong>File Size:</strong> {{ file_info.size }}</p>
+        <p><strong>Analyzed At:</strong> {{ file_info.time }}</p>
+    </div>
+    {% endif %}
+
+    <div class="risk-panel">
+        <h2>Overall Risk Score</h2>
+        <div class="risk-score">{{ summary.risk_score }}/100</div>
+
+        <div class="risk-bar-container">
+            <div class="risk-bar-fill" style="width: {{ summary.risk_score }}%;"></div>
+        </div>
+
+        <p>{{ summary.risk_level }}</p>
+
+        <p class="explain-text">
+            This score estimates the overall severity of suspicious activity found in the uploaded logs or report.
+        </p>
+    </div>
+
+    <div class="panel">
+        <h2>Executive Summary</h2>
+        <p>{{ summary.executive_summary }}</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat critical-box">
+            Critical
+            <span>{{ summary.critical }}</span>
+        </div>
+
+        <div class="stat high-box">
+            High
+            <span>{{ summary.high }}</span>
+        </div>
+
+        <div class="stat medium-box">
+            Medium
+            <span>{{ summary.medium }}</span>
+        </div>
+
+        <div class="stat low-box">
+            Low
+            <span>{{ summary.low }}</span>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Severity Chart</h2>
+        <canvas id="severityChart"></canvas>
+    </div>
+
+    <div class="panel">
+        <h2>Indicators of Compromise</h2>
+        <p class="explain-text">
+            IOCs are clues such as IP addresses or accounts that may be linked to suspicious activity.
+        </p>
+
+        <h3>Suspicious IP Addresses</h3>
+        {% if summary.ips %}
+            {% for ip in summary.ips %}
+                <span class="ip">{{ ip }}</span>
+            {% endfor %}
+        {% else %}
+            <p>No suspicious IPs found.</p>
+        {% endif %}
+
+        <h3>User Accounts</h3>
+        {% if summary.users %}
+            {% for user in summary.users %}
+                <span class="ip">{{ user }}</span>
+            {% endfor %}
+        {% else %}
+            <p>No user accounts found.</p>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <h2>Threat Intelligence Lookup</h2>
+        <p class="explain-text">
+            Threat intelligence checks whether extracted public IP addresses have been reported for malicious activity.
+        </p>
+
+        {% if summary.threat_intel %}
+            {% for intel in summary.threat_intel %}
+            <div class="threat-intel-card">
+                <h3>{{ intel.ip }}</h3>
+                <p><strong>Status:</strong> {{ intel.status }}</p>
+                <p><strong>Abuse Score:</strong> {{ intel.abuse_score }}</p>
+                <p><strong>Country:</strong> {{ intel.country }}</p>
+                <p><strong>ISP:</strong> {{ intel.isp }}</p>
+                <p><strong>Domain:</strong> {{ intel.domain }}</p>
+                <p><strong>Total Reports:</strong> {{ intel.total_reports }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No threat intelligence data available.</p>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <h2>MITRE ATT&CK Techniques Detected</h2>
+        <p class="explain-text">
+            MITRE ATT&CK is a cybersecurity framework used to classify attacker behavior.
+        </p>
+
+        {% if summary.mitre_techniques %}
+            <div class="mitre-grid">
+            {% for technique in summary.mitre_techniques %}
+                <div class="mitre-card">
+                    <h3>{{ technique }}</h3>
+                    <p>Detected attacker behavior mapped to MITRE ATT&CK.</p>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p>No MITRE techniques detected.</p>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <h2>Threat Timeline</h2>
+
+        {% if summary.timeline %}
+            {% for item in summary.timeline %}
+                <div class="timeline-item">
+                    <strong>{{ item.event }}</strong>
+                    <p>{{ item.line }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No timeline events found.</p>
+        {% endif %}
+    </div>
+
+    <div class="terminal-panel">
+        <p>[+] Parsing uploaded file...</p>
+        <p>[+] Extracting indicators of compromise...</p>
+        <p>[+] Checking IP reputation with AbuseIPDB...</p>
+        <p>[+] Mapping detections to MITRE ATT&CK...</p>
+        <p>[+] Calculating risk score...</p>
+        <p>[✓] SOC analysis complete.</p>
+    </div>
+
+    <div class="download-buttons">
+        <a href="/download-report">
+            <button type="button">Download SOC PDF Report</button>
+        </a>
+
+        <a href="/export-iocs">
+            <button type="button">Export IOCs as CSV</button>
+        </a>
+    </div>
+
+    <div class="panel">
+        <h2>Raw Log Viewer</h2>
+        <button type="button" onclick="toggleRawLogs()">View / Hide Raw Logs</button>
+        <pre id="rawLogs" class="raw-logs">{{ log_text }}</pre>
+    </div>
+
+    <div class="results">
+        <h2>Analysis Results</h2>
+
+        {% for result in results %}
+        <div class="card {{ result.severity|lower }}">
+            <h3>{{ result.severity }} - {{ result.issue }}</h3>
+            <p><strong>MITRE ATT&CK:</strong> {{ result.mitre }}</p>
+            <p><strong>Evidence:</strong> {{ result.evidence }}</p>
+            <p><strong>Explanation:</strong> {{ result.explanation }}</p>
+            <p><strong>Recommended Action:</strong> {{ result.recommendation }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
+    <footer class="footer">
+        <p>ThreatLens v1.0</p>
+        <p>Built by Shamin Naushad Mohammad</p>
+        <p>Python • Flask • MITRE ATT&CK • AbuseIPDB • SOC Automation</p>
+    </footer>
+
+</div>
+
+{% if summary %}
+<script>
+const severityCounts = [
+    {{ summary.critical|default(0) }},
+    {{ summary.high|default(0) }},
+    {{ summary.medium|default(0) }},
+    {{ summary.low|default(0) }}
+];
+
+const ctx = document.getElementById("severityChart");
+
+new Chart(ctx, {
+    type: "doughnut",
+    data: {
+        labels: ["Critical", "High", "Medium", "Low"],
+        datasets: [{
+            data: severityCounts,
+            backgroundColor: [
+                "#ff00ff",
+                "#ff4444",
+                "#ffff66",
+                "#00ff88"
+            ]
+        }]
+    },
+    options: {
+        plugins: {
+            legend: {
+                labels: {
+                    color: "#00ff88"
+                }
+            }
+        }
+    }
+});
+
+function toggleRawLogs() {
+    const rawLogs = document.getElementById("rawLogs");
+
+    if (rawLogs.style.display === "block") {
+        rawLogs.style.display = "none";
+    } else {
+        rawLogs.style.display = "block";
+    }
+}
+</script>
+{% endif %}
+
+</body>
+</html>

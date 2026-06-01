@@ -1,0 +1,6 @@
+flask
+PyPDF2
+reportlab
+python-dotenv
+requests
+gunicorn

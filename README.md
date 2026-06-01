@@ -1,6 +1,8 @@
-# AI-Assisted SOC Log Analyzer
+# ThreatLens
 
-A Flask-based cybersecurity dashboard that analyzes security logs and reports to detect suspicious activity such as SSH brute-force attempts, successful logins after failures, web scanning, suspicious IPs, and user account indicators.
+### AI-Powered Threat Detection & SOC Analysis Platform
+
+ThreatLens is a web-based cybersecurity investigation platform that analyzes security logs and reports, detects suspicious activity, extracts indicators of compromise (IOCs), maps findings to MITRE ATT&CK techniques, enriches alerts with threat intelligence, and generates automated investigation reports.
 
 ## Features
 

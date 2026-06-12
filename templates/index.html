@@ -352,19 +352,31 @@ new Chart(ctx, {
         datasets: [{
             data: severityCounts,
             backgroundColor: [
-    "#8b0000",
-    "#ff1f1f",
-    "#ffb000",
-    "#00ff88"
-]
+                "#7f0000",
+                "#ff3333",
+                "#ffb000",
+                "#00c853"
+            ],
+            borderColor: "#111111",
+            borderWidth: 2
         }]
     },
     options: {
+        responsive: true,
         plugins: {
             legend: {
+                position: "bottom",
                 labels: {
-                    color: "#00ff88"
+                    color: "#00ff88",
+                    font: {
+                        size: 12
+                    }
                 }
+            },
+            tooltip: {
+                backgroundColor: "#111",
+                titleColor: "#00ff88",
+                bodyColor: "#ffffff"
             }
         }
     }

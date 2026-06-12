@@ -45,12 +45,17 @@ May 31 09:00:22 ubuntu sshd[1001]: pam_unix(sshd:session): session closed for us
 
 def extract_text_from_pdf(uploaded_file):
     text = ""
-    pdf_reader = PyPDF2.PdfReader(uploaded_file)
 
-    for page in pdf_reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
+    try:
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+
+        for page in pdf_reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+
+    except Exception:
+        return ""
 
     return text
 
@@ -174,7 +179,6 @@ def create_pdf_report(results, summary):
     content.append(Spacer(1, 12))
 
     content.append(Paragraph("Threat Intelligence", styles["Heading2"]))
-
     if summary.get("threat_intel"):
         for item in summary["threat_intel"]:
             content.append(Paragraph(
@@ -194,9 +198,12 @@ def create_pdf_report(results, summary):
 
     for finding in results:
         content.append(Paragraph(f"{finding['severity']} - {finding['issue']}", styles["Heading3"]))
+        content.append(Paragraph(f"Category: {finding.get('category', 'N/A')}", styles["BodyText"]))
         content.append(Paragraph(f"MITRE ATT&CK: {finding['mitre']}", styles["BodyText"]))
         content.append(Paragraph(f"Evidence: {finding['evidence']}", styles["BodyText"]))
         content.append(Paragraph(f"Explanation: {finding['explanation']}", styles["BodyText"]))
+        content.append(Paragraph(f"Analyst Assessment: {finding.get('analyst_assessment', 'N/A')}", styles["BodyText"]))
+        content.append(Paragraph(f"Why This Matters: {finding.get('why_it_matters', 'N/A')}", styles["BodyText"]))
         content.append(Paragraph(f"Recommendation: {finding['recommendation']}", styles["BodyText"]))
         content.append(Spacer(1, 10))
 
@@ -265,11 +272,14 @@ def index():
                 error = "Please upload a file, paste logs, or choose a demo sample."
 
         if not error:
-            results, summary = analyze_logs(log_text)
-            summary = enrich_summary_with_threat_intel(summary)
+            if not log_text.strip():
+                error = "No readable text was found. Please upload a valid LOG, TXT, or text-based PDF file. Scanned image PDFs are not supported yet."
+            else:
+                results, summary = analyze_logs(log_text)
+                summary = enrich_summary_with_threat_intel(summary)
 
-            latest_results = results
-            latest_summary = summary
+                latest_results = results
+                latest_summary = summary
 
     return render_template(
         "index.html",

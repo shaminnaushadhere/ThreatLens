@@ -179,6 +179,7 @@ def create_pdf_report(results, summary):
     content.append(Spacer(1, 12))
 
     content.append(Paragraph("Threat Intelligence", styles["Heading2"]))
+
     if summary.get("threat_intel"):
         for item in summary["threat_intel"]:
             content.append(Paragraph(

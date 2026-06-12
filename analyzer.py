@@ -201,30 +201,39 @@ def analyze_logs(log_text):
             "recommendation": "If this was expected to contain security events, upload raw logs, a text-based security report, or more complete evidence for analysis."
         })
 
-    severity_counts = count_severities(findings)
+        severity_counts = count_severities(findings)
 
-risk_score = min(
-    severity_counts["critical"] * 35 +
-    severity_counts["high"] * 25 +
-    severity_counts["medium"] * 15 +
-    severity_counts["low"] * 5,
-    100
-)
+    risk_score = min(
+        severity_counts["critical"] * 35 +
+        severity_counts["high"] * 25 +
+        severity_counts["medium"] * 15 +
+        severity_counts["low"] * 5,
+        100
+    )
 
-if severity_counts["critical"] > 0:
-    risk_level = "Critical Risk"
-    risk_score = max(risk_score, 85)
-elif severity_counts["high"] > 0:
-    risk_level = "High Risk"
-    risk_score = max(risk_score, 65)
-elif severity_counts["medium"] > 0:
-    risk_level = "Medium Risk"
-    risk_score = max(risk_score, 40)
-else:
-    risk_level = "Low Risk"
-    risk_score = max(risk_score, 10)
+    if severity_counts["critical"] > 0:
+        risk_level = "Critical Risk"
+        risk_score = max(risk_score, 85)
 
-    mitre_techniques = list(set(f["mitre"] for f in findings if f["mitre"] != "N/A"))
+    elif severity_counts["high"] > 0:
+        risk_level = "High Risk"
+        risk_score = max(risk_score, 65)
+
+    elif severity_counts["medium"] > 0:
+        risk_level = "Medium Risk"
+        risk_score = max(risk_score, 40)
+
+    else:
+        risk_level = "Low Risk"
+        risk_score = max(risk_score, 10)
+
+    mitre_techniques = list(
+        set(
+            f["mitre"]
+            for f in findings
+            if f["mitre"] != "N/A"
+        )
+    )
 
     summary = {
         "critical": severity_counts["critical"],
@@ -237,7 +246,10 @@ else:
         "mitre_techniques": mitre_techniques,
         "risk_score": risk_score,
         "risk_level": risk_level,
-        "executive_summary": generate_executive_summary(findings, risk_level)
+        "executive_summary": generate_executive_summary(
+            findings,
+            risk_level
+        )
     }
 
     return findings, summary

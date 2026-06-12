@@ -759,3 +759,12 @@ html {
         font-size: 18px;
     }
 }
+.demo-guide {
+    margin-bottom: 20px;
+}
+
+.demo-guide p {
+    color: #b8b8b8;
+    line-height: 1.6;
+    margin-top: 10px;
+}

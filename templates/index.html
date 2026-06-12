@@ -80,9 +80,16 @@
     <form method="POST" enctype="multipart/form-data" class="panel" id="demo-section">
 
         <div class="demo-guide">
-            <h2>Try a Demo</h2>
-            <p>No setup needed. Click a demo below and ThreatLens will analyze sample SOC logs automatically.</p>
-        </div>
+    <h2>Try Built-In Attack Simulations</h2>
+
+    <p>
+        These demo scenarios simulate common cybersecurity incidents and demonstrate how ThreatLens performs SOC-style investigations, threat detection, IOC extraction, MITRE ATT&CK mapping, and risk assessment.
+    </p>
+
+    <p>
+        No setup is required. Select a scenario below to explore the platform's analysis capabilities before uploading your own logs or reports.
+    </p>
+     </div>
 
         <div class="demo-buttons">
             <button type="submit" name="demo_type" value="ssh">SSH Brute Force Demo</button>
@@ -306,9 +313,12 @@
         {% for result in results %}
         <div class="card {{ result.severity|lower }}">
             <h3>{{ result.severity }} - {{ result.issue }}</h3>
+           <p><strong>Category:</strong> {{ result.category }}</p>
             <p><strong>MITRE ATT&CK:</strong> {{ result.mitre }}</p>
             <p><strong>Evidence:</strong> {{ result.evidence }}</p>
             <p><strong>Explanation:</strong> {{ result.explanation }}</p>
+            <p><strong>Analyst Assessment:</strong> {{ result.analyst_assessment }}</p>
+            <p><strong>Why This Matters:</strong> {{ result.why_it_matters }}</p>
             <p><strong>Recommended Action:</strong> {{ result.recommendation }}</p>
         </div>
         {% endfor %}

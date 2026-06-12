@@ -203,22 +203,26 @@ def analyze_logs(log_text):
 
     severity_counts = count_severities(findings)
 
-    risk_score = min(
-        severity_counts["critical"] * 35 +
-        severity_counts["high"] * 25 +
-        severity_counts["medium"] * 15 +
-        severity_counts["low"] * 5,
-        100
-    )
+risk_score = min(
+    severity_counts["critical"] * 35 +
+    severity_counts["high"] * 25 +
+    severity_counts["medium"] * 15 +
+    severity_counts["low"] * 5,
+    100
+)
 
-    if risk_score >= 75:
-        risk_level = "Critical Risk"
-    elif risk_score >= 50:
-        risk_level = "High Risk"
-    elif risk_score >= 25:
-        risk_level = "Medium Risk"
-    else:
-        risk_level = "Low Risk"
+if severity_counts["critical"] > 0:
+    risk_level = "Critical Risk"
+    risk_score = max(risk_score, 85)
+elif severity_counts["high"] > 0:
+    risk_level = "High Risk"
+    risk_score = max(risk_score, 65)
+elif severity_counts["medium"] > 0:
+    risk_level = "Medium Risk"
+    risk_score = max(risk_score, 40)
+else:
+    risk_level = "Low Risk"
+    risk_score = max(risk_score, 10)
 
     mitre_techniques = list(set(f["mitre"] for f in findings if f["mitre"] != "N/A"))
 

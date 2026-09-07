@@ -21,7 +21,7 @@
             Threat<span class="lens-part">Lens</span>
         </h1>
 
-        <p class="tagline">Threat Detection & SOC Analysis Platform</p>
+        <p class="tagline">AI-Powered Threat Detection & SOC Analysis Platform</p>
 
         <p class="subtitle">
             Upload security logs or reports. Detect threats. Investigate faster.
@@ -77,7 +77,11 @@
         </div>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" class="panel" id="demo-section">
+    <form method="POST"
+      enctype="multipart/form-data"
+      class="panel"
+      id="demo-section"
+      action="#investigation-summary">
 
         <div class="demo-guide">
     <h2>Try Built-In Attack Simulations</h2>
@@ -91,11 +95,53 @@
     </p>
      </div>
 
-        <div class="demo-buttons">
-            <button type="submit" name="demo_type" value="ssh">SSH Brute Force Demo</button>
-            <button type="submit" name="demo_type" value="compromise">Compromised Login Demo</button>
-            <button type="submit" name="demo_type" value="web">Web Scan Demo</button>
-            <button type="submit" name="demo_type" value="normal">Normal Activity Demo</button>
+        <div class="demo-grid">
+
+            <button type="submit" name="demo_type" value="normal" class="demo-card">
+                <span class="demo-tag">BENIGN</span>
+                <span class="demo-title">Normal Activity</span>
+                <span class="demo-description">
+                    Analyze normal endpoint activity with no malicious indicators.
+                </span>
+                <span class="demo-action">Run Simulation →</span>
+            </button>
+
+            <button type="submit" name="demo_type" value="account_compromise" class="demo-card">
+                <span class="demo-tag">AUTHENTICATION</span>
+                <span class="demo-title">Account Compromise</span>
+                <span class="demo-description">
+                    Repeated failed SSH logins followed by successful authentication.
+                </span>
+                <span class="demo-action">Run Simulation →</span>
+            </button>
+
+            <button type="submit" name="demo_type" value="execution_persistence" class="demo-card">
+                <span class="demo-tag">ATTACK CHAIN</span>
+                <span class="demo-title">Execution → Persistence</span>
+                <span class="demo-description">
+                    Suspicious PowerShell execution followed by registry persistence.
+                </span>
+                <span class="demo-action">Run Simulation →</span>
+            </button>
+
+            <button type="submit" name="demo_type" value="c2" class="demo-card">
+                <span class="demo-tag">COMMAND & CONTROL</span>
+                <span class="demo-title">DNS → C2 Beaconing</span>
+                <span class="demo-description">
+                    DNS resolution correlated with repeated outbound beaconing.
+                </span>
+                <span class="demo-action">Run Simulation →</span>
+            </button>
+
+            <button type="submit" name="demo_type" value="ransomware" class="demo-card demo-card-wide">
+                <span class="demo-tag">HIGH-IMPACT SCENARIO</span>
+                <span class="demo-title">Ransomware-Like Activity</span>
+                <span class="demo-description">
+                    Suspicious execution → recovery inhibition → rapid file activity.
+                </span>
+                <span class="demo-action">Run Simulation →</span>
+            </button>
+
         </div>
 
         <p class="privacy-note">
@@ -121,26 +167,45 @@
     {% if summary %}
 
     <div class="panel investigation-summary">
-        <h2>Investigation Summary</h2>
-        <div class="summary-grid">
-            <div>
-                <strong>{{ summary.risk_level }}</strong>
-                <span>Overall Risk</span>
-            </div>
-            <div>
-                <strong>{{ summary.ips|length }}</strong>
-                <span>IP Addresses Found</span>
-            </div>
-            <div>
-                <strong>{{ summary.mitre_techniques|length }}</strong>
-                <span>MITRE Techniques</span>
-            </div>
-            <div>
-                <strong>{{ results|length }}</strong>
-                <span>Total Findings</span>
-            </div>
+    <h2 id="investigation-summary">Investigation Summary</h2>
+
+    <div class="summary-grid">
+
+        <div>
+            <strong>
+                {% if summary.risk_score is not none %}
+                    {{ summary.risk_score }}/100
+                {% else %}
+                    —
+                {% endif %}
+            </strong>
+            <span>{{ summary.risk_level }} Risk</span>
         </div>
+
+        <div>
+            <strong>{{ summary.events_parsed }}</strong>
+            <span>Events Analyzed</span>
+        </div>
+
+        <div>
+            <strong>{{ summary.findings_count }}</strong>
+            <span>Security Findings</span>
+        </div>
+
+        <div>
+            <strong>{{ summary.incidents_count }}</strong>
+            <span>Correlated Incidents</span>
+        </div>
+
     </div>
+
+    {% if summary.detected_sources %}
+    <div class="detected-source">
+        <strong>Telemetry:</strong>
+        {{ summary.detected_sources | join(", ") }}
+    </div>
+    {% endif %}
+</div>
 
     {% if file_info %}
     <div class="panel">
@@ -157,7 +222,9 @@
         <div class="risk-score">{{ summary.risk_score }}/100</div>
 
         <div class="risk-bar-container">
-            <div class="risk-bar-fill" style="width: {{ summary.risk_score }}%;"></div>
+            <div class="risk-bar-fill"
+                style="width: {{ summary.risk_score if summary.risk_score is not none else 0 }}%;">
+            </div>
         </div>
 
         <p>{{ summary.risk_level }}</p>
@@ -168,9 +235,63 @@
     </div>
 
     <div class="panel">
-        <h2>Executive Summary</h2>
-        <p>{{ summary.executive_summary }}</p>
+    <h2>Executive Summary</h2>
+    <p>{{ summary.executive_summary }}</p>
+</div>
+
+<div class="panel">
+    <h2>Affected Assets</h2>
+
+    <div class="asset-grid">
+
+        <div class="asset-block">
+            <h3>Hosts</h3>
+            {% if summary.hosts %}
+                {% for host in summary.hosts %}
+                    <span class="entity-chip">{{ host }}</span>
+                {% endfor %}
+            {% else %}
+                <p>No affected hosts identified.</p>
+            {% endif %}
+        </div>
+
+        <div class="asset-block">
+            <h3>Users</h3>
+            {% if summary.users %}
+                {% for user in summary.users %}
+                    <span class="entity-chip">{{ user }}</span>
+                {% endfor %}
+            {% else %}
+                <p>No affected users identified.</p>
+            {% endif %}
+        </div>
+
+        <div class="asset-block">
+            <h3>Processes</h3>
+            {% if summary.processes %}
+                {% for process in summary.processes %}
+                    <span class="entity-chip">{{ process }}</span>
+                {% endfor %}
+            {% else %}
+                <p>No processes identified.</p>
+            {% endif %}
+        </div>
+
+        <div class="asset-block">
+            <h3>Domains</h3>
+            {% if summary.domains %}
+                {% for domain in summary.domains %}
+                    <span class="entity-chip">{{ domain }}</span>
+                {% endfor %}
+            {% else %}
+                <p>No domains identified.</p>
+            {% endif %}
+        </div>
+
     </div>
+</div>
+
+<div class="stats">
 
     <div class="stats">
         <div class="stat critical-box">
@@ -268,19 +389,75 @@
     </div>
 
     <div class="panel">
-        <h2>Threat Timeline</h2>
+    <h2>Threat Timeline</h2>
 
-        {% if summary.timeline %}
+    {% if summary.timeline %}
+
+        <div class="threat-timeline">
+
             {% for item in summary.timeline %}
-                <div class="timeline-item">
-                    <strong>{{ item.event }}</strong>
-                    <p>{{ item.line }}</p>
+
+            <div class="timeline-item">
+
+                <div class="timeline-marker"></div>
+
+                <div class="timeline-content">
+
+                    <div class="timeline-header">
+
+                        <strong>{{ item.event }}</strong>
+
+                        <span class="timeline-severity severity-{{ item.severity|lower }}">
+                            {{ item.severity }}
+                        </span>
+
+                    </div>
+
+                    {% if item.timestamp %}
+                    <p class="timeline-time">
+                        {{ item.timestamp }}
+                    </p>
+                    {% endif %}
+
+                    {% if item.host %}
+                    <p>
+                        <strong>Host:</strong>
+                        {{ item.host }}
+                    </p>
+                    {% endif %}
+
+                    {% if item.rule_id %}
+                    <p>
+                        <strong>Rule:</strong>
+                        {{ item.rule_id }}
+                    </p>
+                    {% endif %}
+
+                    {% if item.incident_id %}
+                    <p>
+                        <strong>Incident:</strong>
+                        {{ item.incident_id }}
+                    </p>
+                    {% endif %}
+
+                    <span class="timeline-type">
+                        {{ item.type|upper }}
+                    </span>
+
                 </div>
+
+            </div>
+
             {% endfor %}
-        {% else %}
-            <p>No timeline events found.</p>
-        {% endif %}
-    </div>
+
+        </div>
+
+    {% else %}
+
+        <p>No timeline events found.</p>
+
+    {% endif %}
+</div>
 
     <div class="terminal-panel">
         <p>[+] Parsing uploaded file...</p>
@@ -307,30 +484,124 @@
         <pre id="rawLogs" class="raw-logs">{{ log_text }}</pre>
     </div>
 
-    <div class="results">
-        <h2>Analysis Results</h2>
+    <div id="analysis-results" class="results">
+
+    <h2>Detection & Incident Details</h2>
+
+    {% if results %}
 
         {% for result in results %}
+
         <div class="card {{ result.severity|lower }}">
-            <h3>{{ result.severity }} - {{ result.issue }}</h3>
-           <p><strong>Category:</strong> {{ result.category }}</p>
-            <p><strong>MITRE ATT&CK:</strong> {{ result.mitre }}</p>
-            <p><strong>Evidence:</strong> {{ result.evidence }}</p>
-            <p><strong>Explanation:</strong> {{ result.explanation }}</p>
-            <p><strong>Analyst Assessment:</strong> {{ result.analyst_assessment }}</p>
-            <p><strong>Why This Matters:</strong> {{ result.why_it_matters }}</p>
-            <p><strong>Recommended Action:</strong> {{ result.recommendation }}</p>
+
+            <div class="result-card-header">
+
+                <h3>{{ result.issue }}</h3>
+
+                <span class="result-severity">
+                    {{ result.severity }}
+                </span>
+
+            </div>
+
+            <div class="result-meta">
+
+                {% if result.rule_id %}
+                <span>Rule: {{ result.rule_id }}</span>
+                {% endif %}
+
+                {% if result.confidence %}
+                <span>Confidence: {{ result.confidence }}</span>
+                {% endif %}
+
+                {% if result.host %}
+                <span>Host: {{ result.host }}</span>
+                {% endif %}
+
+            </div>
+
+            <p>
+                <strong>Category:</strong>
+                {{ result.category }}
+            </p>
+
+            <p>
+                <strong>MITRE ATT&CK:</strong>
+                {{ result.mitre }}
+            </p>
+
+            {% if result.username %}
+            <p>
+                <strong>User:</strong>
+                {{ result.username }}
+            </p>
+            {% endif %}
+
+            {% if result.first_seen %}
+            <p>
+                <strong>First Seen:</strong>
+                {{ result.first_seen }}
+            </p>
+            {% endif %}
+
+            <p>
+                <strong>Explanation:</strong>
+                {{ result.explanation }}
+            </p>
+
+            {% if result.analyst_assessment %}
+            <p>
+                <strong>Analyst Assessment:</strong>
+                {{ result.analyst_assessment }}
+            </p>
+            {% endif %}
+
+            {% if result.why_it_matters %}
+            <p>
+                <strong>Why This Matters:</strong>
+                {{ result.why_it_matters }}
+            </p>
+            {% endif %}
+
+            <p>
+                <strong>Recommended Action:</strong>
+                {{ result.recommendation }}
+            </p>
+
+            {% if result.evidence %}
+            <details class="evidence-details">
+                <summary>View Raw Evidence</summary>
+                <pre>{{ result.evidence }}</pre>
+            </details>
+            {% endif %}
+
         </div>
+
         {% endfor %}
-    </div>
+
+    {% else %}
+
+        <p>No security findings detected in the supported telemetry.</p>
+
+    {% endif %}
+
+</div>
 
     {% endif %}
 
     <footer class="footer">
-        <p>ThreatLens v1.0</p>
-        <p>Built by Shamin Naushad Mohammad</p>
-        <p>Python • Flask • MITRE ATT&CK • AbuseIPDB • SOC Automation</p>
-    </footer>
+    <p class="footer-brand">ThreatLens v2.0</p>
+
+    <p>Built by Shamin Naushad Mohammad</p>
+
+    <p class="footer-stack">
+        Python • Flask • Sysmon • MITRE ATT&CK • AbuseIPDB • SOC Automation
+    </p>
+
+    <p class="footer-tagline">
+        Detection • Correlation • Risk Scoring • Incident Analysis
+    </p>
+</footer>
 
 </div>
 
@@ -352,31 +623,19 @@ new Chart(ctx, {
         datasets: [{
             data: severityCounts,
             backgroundColor: [
-                "#7f0000",
-                "#ff3333",
-                "#ffb000",
-                "#00c853"
-            ],
-            borderColor: "#111111",
-            borderWidth: 2
+                "#ff00ff",
+                "#ff4444",
+                "#ffff66",
+                "#00ff88"
+            ]
         }]
     },
     options: {
-        responsive: true,
         plugins: {
             legend: {
-                position: "bottom",
                 labels: {
-                    color: "#00ff88",
-                    font: {
-                        size: 12
-                    }
+                    color: "#00ff88"
                 }
-            },
-            tooltip: {
-                backgroundColor: "#111",
-                titleColor: "#00ff88",
-                bodyColor: "#ffffff"
             }
         }
     }
@@ -393,6 +652,7 @@ function toggleRawLogs() {
 }
 </script>
 {% endif %}
+
 
 </body>
 </html>

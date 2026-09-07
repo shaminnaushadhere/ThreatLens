@@ -4,6 +4,7 @@
 
 ThreatLens is a web-based cybersecurity investigation platform that analyzes security logs and reports, detects suspicious activity, extracts indicators of compromise (IOCs), maps findings to MITRE ATT&CK techniques, enriches alerts with threat intelligence, and generates automated investigation reports.
 
+
 ## Features
 
 - Upload `.log`, `.txt`, and `.pdf` files

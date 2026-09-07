@@ -1,0 +1,7 @@
+2026-05-31 10:01:12 Failed password for admin from 192.168.1.45 port 22 ssh2
+2026-05-31 10:01:18 Failed password for admin from 192.168.1.45 port 22 ssh2
+2026-05-31 10:01:25 Failed password for admin from 192.168.1.45 port 22 ssh2
+2026-05-31 10:02:01 Accepted password for admin from 192.168.1.45 port 22 ssh2
+2026-05-31 11:15:33 Malware detected on host DESKTOP-22A
+2026-05-31 12:44:10 Multiple login failures detected from 45.67.89.10
+2026-05-31 13:20:55 User guest attempted privilege escalation
